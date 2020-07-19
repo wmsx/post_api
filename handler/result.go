@@ -10,7 +10,7 @@ type PostInfo struct {
 }
 
 type MengerInfo struct {
-	MengerId int64  `json:"mengerId,omitempty"`
+	MengerId int64  `json:"menger_id,omitempty"`
 	Name     string `json:"name,omitempty"`
 	Email    string `json:"email,omitempty"`
 	Avatar   string `json:"avatar,omitempty"`

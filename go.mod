@@ -16,6 +16,7 @@ require (
 	github.com/micro/go-micro/v2 v2.9.1
 	github.com/minio/minio-go/v6 v6.0.57
 	github.com/wmsx/menger_svc v0.0.0-00010101000000-000000000000
+	github.com/wmsx/pkg v0.0.0-20200710124640-b827730961c0
 	github.com/wmsx/post_svc v0.0.0-00010101000000-000000000000
 	github.com/wmsx/store_api v0.0.0-20200716042549-4215a3f76a87
 	github.com/wmsx/store_svc v0.0.0-00010101000000-000000000000

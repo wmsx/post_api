@@ -14,9 +14,12 @@ func InitRouter(c client.Client) *gin.Engine {
 	r.Use(gin.Logger())
 
 	postHandler := handler.NewPostHandler(c)
+	categoryHandler := handler.NewCategoryHandler(c)
 	postRouter := r.Group("/post")
 
 	postRouter.POST("/list/", postHandler.GetPostList)
+	postRouter.POST("/create/", postHandler.CreatePost)
 
+	postRouter.POST("/category/create", categoryHandler.CreateCategory)
 	return r
 }

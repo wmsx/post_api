@@ -1,4 +1,4 @@
-package minio
+package handler
 
 import (
 	"github.com/minio/minio-go/v6"
