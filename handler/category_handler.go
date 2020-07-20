@@ -48,8 +48,8 @@ func (h *CategoryHandler) CreateCategory(c *gin.Context) {
 		app.ServerErrorResponse()
 		return
 	}
-	if createCategoryRes.ErrorMsg != nil {
-		app.LogicErrorResponse(createCategoryRes.ErrorMsg.Msg)
+	if createCategoryRes.ErrorMsg != "" {
+		app.LogicErrorResponse(createCategoryRes.ErrorMsg)
 		return
 	}
 

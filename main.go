@@ -1,9 +1,11 @@
 package main
 
 import (
-	log "github.com/micro/go-micro/v2/logger"
+	"github.com/micro/cli/v2"
+	"github.com/micro/go-micro/v2/util/log"
 	"github.com/micro/go-micro/v2/web"
 	"github.com/wmsx/post_api/routers"
+	"github.com/wmsx/post_api/setting"
 )
 
 const name = "wm.sx.web.post"
@@ -11,8 +13,26 @@ const name = "wm.sx.web.post"
 func main() {
 	svc := web.NewService(
 		web.Name(name),
+		web.Flags(
+			&cli.StringFlag{
+				Name:    "env",
+				Usage:   "指定运行环境",
+				Value:   "dev",
+				EnvVars: []string{"RUN_ENV"},
+			},
+		),
 	)
-	if err := svc.Init(); err != nil {
+
+	var env string
+	if err := svc.Init(
+		web.Action(func(c *cli.Context) {
+			env = c.String("env")
+		}),
+		web.BeforeStart(func() (err error) {
+			err = setting.SetUp(name, env)
+			return err
+		}),
+	); err != nil {
 		log.Fatal("初始化失败", err)
 	}
 
@@ -22,4 +42,5 @@ func main() {
 	if err := svc.Run(); err != nil {
 		log.Fatal(err)
 	}
+
 }

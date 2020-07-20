@@ -2,7 +2,7 @@ package setting
 
 import (
 	"github.com/micro/go-micro/v2/config"
-	log "github.com/micro/go-micro/v2/logger"
+	"github.com/micro/go-micro/v2/util/log"
 	"github.com/wmsx/xconf/pkg/client/source"
 )
 
@@ -13,29 +13,35 @@ var (
 )
 
 type Minio struct {
-	Endpoint        string
-	AccessKey       string
-	SecretAccessKey string
+	Endpoint        string `json:"endpoint"`
+	AccessKey       string `json:"access_key"`
+	SecretAccessKey string `json:"secret_access_key"`
 }
 
-func SetUpMinio(appName, env string) error {
+func setUpMinio(appName, env string) error {
 	sourceUrl := XConfURL
 	if env == "dev" {
 		sourceUrl = DevXConfURL
 	}
 
+	s := source.NewSource(appName, env, MinIONamespace, source.WithURL(sourceUrl))
+
 	minioConfig, err := config.NewConfig(
-		config.WithSource(source.NewSource(appName, env, MinIONamespace, source.WithURL(sourceUrl))),
+		config.WithSource(s),
 	)
 	if err != nil {
 		log.Error("获取db配置失败")
 		return err
 	}
+
 	err = minioConfig.Scan(&MinIOSetting)
 	if err != nil {
 		log.Error("获取db配置失败")
 		return err
 	}
+
+	log.Info("初始化minio配置: ", MinIOSetting)
+
 	minioWatcher, err := minioConfig.Watch()
 	if err != nil {
 		log.Error("db配置watch失败")

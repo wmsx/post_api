@@ -13,11 +13,16 @@ replace (
 
 require (
 	github.com/gin-gonic/gin v1.6.3
+	github.com/gogo/protobuf v1.3.1 // indirect
+	github.com/micro/cli/v2 v2.1.2
 	github.com/micro/go-micro/v2 v2.9.1
 	github.com/minio/minio-go/v6 v6.0.57
+	github.com/onsi/ginkgo v1.11.0 // indirect
+	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/wmsx/menger_svc v0.0.0-00010101000000-000000000000
 	github.com/wmsx/pkg v0.0.0-20200710124640-b827730961c0
 	github.com/wmsx/post_svc v0.0.0-00010101000000-000000000000
-	github.com/wmsx/store_api v0.0.0-20200716042549-4215a3f76a87
 	github.com/wmsx/store_svc v0.0.0-00010101000000-000000000000
+	github.com/wmsx/xconf v0.0.0-20200710193800-f97c7e3c9e84
+	sigs.k8s.io/yaml v1.2.0 // indirect
 )

@@ -136,7 +136,7 @@ func (h *PostHandler) CreatePost(c *gin.Context) {
 	var (
 		createPostParam CreatePostParam
 		err             error
-		savePostRes     *postProto.SavePostResponse
+		createPostRes   *postProto.CreatePostResponse
 	)
 	app := mygin.Gin{C: c}
 	if err = c.ShouldBindJSON(createPostParam); err != nil {
@@ -159,7 +159,7 @@ func (h *PostHandler) CreatePost(c *gin.Context) {
 		protoPostItems = append(protoPostItems, protoPostItem)
 	}
 
-	savePostRequest := &postProto.SavePostRequest{
+	savePostRequest := &postProto.CreatePostRequest{
 		Type:        0,
 		Title:       createPostParam.Title,
 		Description: createPostParam.Description,
@@ -168,12 +168,12 @@ func (h *PostHandler) CreatePost(c *gin.Context) {
 		Items:       protoPostItems,
 	}
 
-	if savePostRes, err = h.postClient.SavePost(c, savePostRequest); err != nil {
+	if createPostRes, err = h.postClient.SavePost(c, savePostRequest); err != nil {
 		app.ServerErrorResponse()
 		return
 	}
-	if savePostRes.ErrorMsg != nil {
-		app.LogicErrorResponse(savePostRes.ErrorMsg.Msg)
+	if createPostRes.ErrorMsg != "" {
+		app.LogicErrorResponse(createPostRes.ErrorMsg)
 		return
 	}
 	app.Response(nil)
