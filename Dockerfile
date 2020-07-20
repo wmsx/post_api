@@ -9,7 +9,7 @@ ENV GOPROXY="https://goproxy.io"
 COPY . .
 
 RUN go mod download
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o menger-api
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o post-api
 
 # Run container
 FROM alpine:latest
@@ -20,7 +20,7 @@ RUN apk --no-cache add ca-certificates
 RUN mkdir /app
 WORKDIR /app
 
-COPY --from=builder /app/menger-api .
+COPY --from=builder /app/post-api .
 
-ENTRYPOINT ["/app/menger-api"]
+ENTRYPOINT ["/app/post-api"]
 
