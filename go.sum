@@ -741,6 +741,14 @@ github.com/urfave/cli v0.0.0-20171014202726-7bc6a0acffa5/go.mod h1:70zkFmudgCuE/
 github.com/urfave/cli v1.22.1/go.mod h1:Gos4lmkARVdJ6EkW0WaNv/tZAAMe9V7XWyB60NtXRu0=
 github.com/vultr/govultr v0.1.4/go.mod h1:9H008Uxr/C4vFNGLqKx232C206GL0PBHzOP0809bGNA=
 github.com/willf/bitset v1.1.9/go.mod h1:RjeCKbqT1RxIR/KWY6phxZiaY1IyutSBfGjNPySAYV4=
+github.com/wmsx/menger_svc v0.0.0-20200720105758-ea97af9f3c81 h1:XR+W+kQgDGVJoAVJRkxFLgYyae2Y1fOPcGDANip6jyg=
+github.com/wmsx/menger_svc v0.0.0-20200720105758-ea97af9f3c81/go.mod h1:Li/hEoZaUQDkW+xbDgt92TdKmM1xYFGoaUps+iWzcJ0=
+github.com/wmsx/pkg v0.0.0-20200720153510-e000d75295a3 h1:acRX2yD44yqtYjTv6lc0vAar7Hms/j08VvrFrNmjvlU=
+github.com/wmsx/pkg v0.0.0-20200720153510-e000d75295a3/go.mod h1:7lkZ+0GLPxFMOo84rWt3ytf9EpPxrtOJVcE6k7YnLQ8=
+github.com/wmsx/post_svc v0.0.0-20200720101613-25ea24597fed h1:Zi8i1gfIwdH4pasrnd3FYC9PCDToyhPQSAxX4oETyxs=
+github.com/wmsx/post_svc v0.0.0-20200720101613-25ea24597fed/go.mod h1:wB/MjXz8Hv885M/VMlTql6pkFLzQEtBfxQXoc69vXZk=
+github.com/wmsx/store_svc v0.0.0-20200720103539-ce7b711a006b h1:Pay9PjwCSeOzx4NtJJmSGDAY0SdJNiY+0PONt1yXnn0=
+github.com/wmsx/store_svc v0.0.0-20200720103539-ce7b711a006b/go.mod h1:SRllk3bQ248Pv11sw+PTdF4OhMsxBsFaJPPK/xZ2vOU=
 github.com/wmsx/xconf v0.0.0-20200710193800-f97c7e3c9e84 h1:ZW9gBd4qnUiRwpgxZCOsjrSEv7fRT0jQdM/UboqvINE=
 github.com/wmsx/xconf v0.0.0-20200710193800-f97c7e3c9e84/go.mod h1:k3qzr9U26NlybCSY5hxV2yhbjvh2DxuWW/vBn5zaos8=
 github.com/xanzy/ssh-agent v0.2.1 h1:TCbipTQL2JiiCprBWx9frJ2eJlCYT00NmctrHxVAr70=
@@ -1087,5 +1095,3 @@ rsc.io/binaryregexp v0.2.0/go.mod h1:qTv7/COck+e2FymRvadv62gMdZztPaShugOCi3I+8D8
 sigs.k8s.io/structured-merge-diff v0.0.0-20190525122527-15d366b2352e/go.mod h1:wWxsB5ozmmv/SG7nM11ayaAW51xMvak/t1r0CSlcokI=
 sigs.k8s.io/yaml v1.1.0 h1:4A07+ZFc2wgJwo8YNlQpr1rVlgUDlxXHhPJciaPY5gs=
 sigs.k8s.io/yaml v1.1.0/go.mod h1:UJmg0vDUVViEyp3mgSv9WPwZCDxu4rQW1olrI1uml+o=
-sigs.k8s.io/yaml v1.2.0 h1:kr/MCeFWJWTwyaHoR9c8EjH9OumOmoF9YGiZd7lFm/Q=
-sigs.k8s.io/yaml v1.2.0/go.mod h1:yfXDCHCao9+ENCvLSE62v9VSji2MKu5jeNfTrofGhJc=

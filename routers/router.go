@@ -3,6 +3,7 @@ package routers
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/micro/go-micro/v2/client"
+	mygin "github.com/wmsx/pkg/gin"
 	"github.com/wmsx/post_api/handler"
 )
 
@@ -18,8 +19,7 @@ func InitRouter(c client.Client) *gin.Engine {
 	postRouter := r.Group("/post")
 
 	postRouter.POST("/list/", postHandler.GetPostList)
-	postRouter.POST("/create/", postHandler.CreatePost)
-
-	postRouter.POST("/category/create", categoryHandler.CreateCategory)
+	postRouter.POST("/create/", mygin.AuthWrapper(postHandler.CreatePost))
+	postRouter.POST("/category/create", mygin.AuthWrapper(categoryHandler.CreateCategory))
 	return r
 }
