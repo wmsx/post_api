@@ -106,7 +106,7 @@ func (s *PostHandler) GetPostList(c *gin.Context) {
 		for _, protoPostItem := range protoPostItems {
 			objectInfo, _ := objectInfoMap[protoPostItem.ObjectId]
 
-			url, err := PresignedGetObject(objectInfo.Bulk, objectInfo.ObjectName, 10*time.Minute)
+			url, err := PresignedGetObject(c, objectInfo.Bulk, objectInfo.ObjectName, 10*time.Minute)
 			if err != nil {
 				app.ServerErrorResponse()
 				return

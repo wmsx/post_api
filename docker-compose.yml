@@ -1,0 +1,15 @@
+version: "3.7"
+services:
+  post-api:
+    container_name: sx-post-api
+    image: post-api:latest
+    restart: always
+    environment:
+      RUN_ENV: prod
+      MICRO_REGISTRY: etcd
+      MICRO_REGISTRY_ADDRESS: sx-etcd-node1:2379,sx-etcd-node2:2379,sx-etcd-node3:2379
+    networks:
+      - sx-net
+networks:
+  sx-net:
+    external: true # 使用自定义创建好的网络，我创建的网络名加sx-net，方便与其他服务通信

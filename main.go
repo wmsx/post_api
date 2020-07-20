@@ -4,6 +4,7 @@ import (
 	"github.com/micro/cli/v2"
 	"github.com/micro/go-micro/v2/util/log"
 	"github.com/micro/go-micro/v2/web"
+	"github.com/wmsx/post_api/handler"
 	"github.com/wmsx/post_api/routers"
 	"github.com/wmsx/post_api/setting"
 )
@@ -29,8 +30,13 @@ func main() {
 			env = c.String("env")
 		}),
 		web.BeforeStart(func() (err error) {
-			err = setting.SetUp(name, env)
-			return err
+			if err = setting.SetUp(name, env); err != nil {
+				return err
+			}
+			if err = handler.SetUp(); err != nil {
+				return err
+			}
+			return nil
 		}),
 	); err != nil {
 		log.Fatal("初始化失败", err)
