@@ -30,13 +30,13 @@ func setUpMinio(appName, env string) error {
 		config.WithSource(s),
 	)
 	if err != nil {
-		log.Error("获取db配置失败")
+		log.Error("获取minio配置失败")
 		return err
 	}
 
 	err = minioConfig.Scan(&MinIOSetting)
 	if err != nil {
-		log.Error("获取db配置失败")
+		log.Error("获取minio配置失败")
 		return err
 	}
 
@@ -44,7 +44,7 @@ func setUpMinio(appName, env string) error {
 
 	minioWatcher, err := minioConfig.Watch()
 	if err != nil {
-		log.Error("db配置watch失败")
+		log.Error("minio配置watch失败")
 		return err
 	}
 
