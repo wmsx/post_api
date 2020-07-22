@@ -9,13 +9,13 @@ import (
 )
 
 type CategoryHandler struct {
-	postClient postProto.PostService
+	postClient     postProto.PostService
 	categoryClient categoryProto.CategoryService
 }
 
 func NewCategoryHandler(c client.Client) *CategoryHandler {
 	return &CategoryHandler{
-		postClient: postProto.NewPostService(postSvcName, c),
+		postClient:     postProto.NewPostService(postSvcName, c),
 		categoryClient: categoryProto.NewCategoryService(postSvcName, c),
 	}
 }
@@ -23,9 +23,9 @@ func NewCategoryHandler(c client.Client) *CategoryHandler {
 // 创建分类
 func (h *CategoryHandler) CreateCategory(c *gin.Context) {
 	var (
-		categoryParam CategoryParam
-		err      error
-		s *mygin.Session
+		categoryParam     CategoryParam
+		err               error
+		s                 *mygin.Session
 		createCategoryRes *categoryProto.CreateCategoryResponse
 	)
 	app := mygin.Gin{C: c}
@@ -41,7 +41,8 @@ func (h *CategoryHandler) CreateCategory(c *gin.Context) {
 	}
 
 	createCategoryRequest := &categoryProto.CreateCategoryRequest{
-		Name: categoryParam.Name,
+		Name:     categoryParam.Name,
+		ShowName: categoryParam.ShowName,
 		MengerId: s.GetMengerId(),
 	}
 	if createCategoryRes, err = h.categoryClient.CreateCategory(c, createCategoryRequest); err != nil {
