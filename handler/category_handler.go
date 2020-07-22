@@ -3,9 +3,11 @@ package handler
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/micro/go-micro/v2/client"
+	"github.com/micro/go-micro/v2/util/log"
 	mygin "github.com/wmsx/pkg/gin"
 	categoryProto "github.com/wmsx/post_svc/proto/category"
 	postProto "github.com/wmsx/post_svc/proto/post"
+	"strconv"
 )
 
 type CategoryHandler struct {
@@ -25,7 +27,6 @@ func (h *CategoryHandler) CreateCategory(c *gin.Context) {
 	var (
 		categoryParam     CategoryParam
 		err               error
-		s                 *mygin.Session
 		createCategoryRes *categoryProto.CreateCategoryResponse
 	)
 	app := mygin.Gin{C: c}
@@ -35,7 +36,9 @@ func (h *CategoryHandler) CreateCategory(c *gin.Context) {
 		return
 	}
 
-	if s, err = mygin.NewSession(c); err != nil {
+	mengerId, err := strconv.ParseInt(c.GetHeader("uid"), 10, 64)
+	if err != nil {
+		log.Error("获取用户id失败 err:  ", err)
 		app.ServerErrorResponse()
 		return
 	}
@@ -43,7 +46,7 @@ func (h *CategoryHandler) CreateCategory(c *gin.Context) {
 	createCategoryRequest := &categoryProto.CreateCategoryRequest{
 		Name:     categoryParam.Name,
 		ShowName: categoryParam.ShowName,
-		MengerId: s.GetMengerId(),
+		MengerId: mengerId,
 	}
 	if createCategoryRes, err = h.categoryClient.CreateCategory(c, createCategoryRequest); err != nil {
 		app.ServerErrorResponse()
@@ -53,7 +56,6 @@ func (h *CategoryHandler) CreateCategory(c *gin.Context) {
 		app.LogicErrorResponse(createCategoryRes.ErrorMsg)
 		return
 	}
-
 	app.Response(nil)
 	return
 }
