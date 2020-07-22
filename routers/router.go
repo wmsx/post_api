@@ -12,14 +12,14 @@ import (
  */
 func InitRouter(c client.Client) *gin.Engine {
 	r := gin.New()
-	r.Use(gin.Logger())
+	r.Use(gin.Logger(), gin.Recovery())
 
 	postHandler := handler.NewPostHandler(c)
 	categoryHandler := handler.NewCategoryHandler(c)
 	postRouter := r.Group("/post")
 
-	postRouter.POST("/list/", postHandler.GetPostList)
-	postRouter.POST("/create/", mygin.AuthWrapper(postHandler.CreatePost))
+	postRouter.POST("/list", postHandler.GetPostList)
+	postRouter.POST("/create", mygin.AuthWrapper(postHandler.CreatePost))
 	postRouter.POST("/category/create", mygin.AuthWrapper(categoryHandler.CreateCategory))
 	return r
 }

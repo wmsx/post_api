@@ -1,17 +1,50 @@
 package handler
 
 import (
+	"github.com/deckarep/golang-set"
 	"github.com/gin-gonic/gin"
 	"github.com/micro/go-micro/v2/client"
+	"github.com/micro/go-micro/v2/util/log"
 	mengerProto "github.com/wmsx/menger_svc/proto/menger"
 	mygin "github.com/wmsx/pkg/gin"
 	postProto "github.com/wmsx/post_svc/proto/post"
 	storeProto "github.com/wmsx/store_svc/proto/store"
-	"net/http"
+	"path"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 )
+
+// PostType
+const (
+	PostSidecar = 0
+	PostImage   = 1
+	PostVideo   = 2
+	PostUnknown = 999
+)
+
+// PostItem类型
+const (
+	PostItemImage   = 1
+	PostItemVideo   = 2
+	PostItemUnknown = 2
+)
+
+var (
+	imageTypeSet = mapset.NewSet()
+	videoTypeSet = mapset.NewSet()
+)
+
+func init() {
+	imageTypeSet.Add(".jpg")
+	imageTypeSet.Add(".jpeg")
+	imageTypeSet.Add(".gif")
+	imageTypeSet.Add(".png")
+
+	videoTypeSet.Add(".mp4")
+	videoTypeSet.Add(".mkv")
+}
 
 type PostHandler struct {
 	postClient   postProto.PostService
@@ -28,7 +61,7 @@ func NewPostHandler(c client.Client) *PostHandler {
 }
 
 // 获取post列表内容
-func (s *PostHandler) GetPostList(c *gin.Context) {
+func (h *PostHandler) GetPostList(c *gin.Context) {
 	var (
 		err               error
 		getPostListRes    *postProto.GetPostListResponse
@@ -37,17 +70,19 @@ func (s *PostHandler) GetPostList(c *gin.Context) {
 	)
 	app := mygin.Gin{C: c}
 
-	var categoryListParam CategoryListParam
-	if err = c.ShouldBindQuery(&categoryListParam); err != nil {
+	var postListParam GetPostListParam
+	if err = c.ShouldBindJSON(&postListParam); err != nil {
+		log.Error("参数解析错误 err: ", err)
 		app.LogicErrorResponse("参数错误")
 		return
 	}
 
 	getPostListReq := &postProto.GetPostListRequest{
-		CategoryId: categoryListParam.CategoryId,
-		LastId:     categoryListParam.LastId,
+		CategoryId: postListParam.CategoryId,
+		LastId:     postListParam.LastId,
 	}
-	if getPostListRes, err = s.postClient.GetPostList(c, getPostListReq); err != nil {
+	if getPostListRes, err = h.postClient.GetPostList(c, getPostListReq); err != nil {
+		log.Error("【post svc】【GetPostList】远程调用失败 err: ", err)
 		app.ServerErrorResponse()
 		return
 	}
@@ -67,8 +102,9 @@ func (s *PostHandler) GetPostList(c *gin.Context) {
 	}
 
 	getByObjectIdsRequest := &storeProto.GetByObjectIdsRequest{ObjectIds: objectIds}
-	if getByObjectIdsRes, err = s.storeClient.GetByObjectIds(c, getByObjectIdsRequest); err != nil {
-		c.String(http.StatusInternalServerError, "服务器异常")
+	if getByObjectIdsRes, err = h.storeClient.GetByObjectIds(c, getByObjectIdsRequest); err != nil {
+		log.Error("【store svc】【GetByObjectIds】远程调用失败 err: ", err)
+		app.ServerErrorResponse()
 		return
 	}
 
@@ -78,15 +114,16 @@ func (s *PostHandler) GetPostList(c *gin.Context) {
 	}
 
 	getMengerListRequest := &mengerProto.GetMengerListRequest{MengerIds: mengerIds}
-	if getMengerListRes, err = s.mengerClient.GetMengerList(c, getMengerListRequest); err != nil {
+	if getMengerListRes, err = h.mengerClient.GetMengerList(c, getMengerListRequest); err != nil {
+		log.Error("【menger svc】【GetMengerList】远程调用失败 err: ", err)
 		app.ServerErrorResponse()
 		return
 	}
 
 	mengerInfoMap := make(map[int64]*MengerInfo)
 	for _, protoMengerInfo := range getMengerListRes.MengerInfos {
-		mengerInfoMap[protoMengerInfo.MengerId] = &MengerInfo{
-			MengerId: protoMengerInfo.MengerId,
+		mengerInfoMap[protoMengerInfo.Id] = &MengerInfo{
+			MengerId: protoMengerInfo.Id,
 			Name:     protoMengerInfo.Name,
 			Email:    protoMengerInfo.Email,
 			Avatar:   protoMengerInfo.Avatar,
@@ -108,6 +145,7 @@ func (s *PostHandler) GetPostList(c *gin.Context) {
 
 			url, err := PresignedGetObject(c, objectInfo.Bulk, objectInfo.ObjectName, 10*time.Minute)
 			if err != nil {
+				log.Error("【minio】获取object访问连接失败 err: ", err)
 				app.ServerErrorResponse()
 				return
 			}
@@ -139,13 +177,15 @@ func (h *PostHandler) CreatePost(c *gin.Context) {
 		createPostRes   *postProto.CreatePostResponse
 	)
 	app := mygin.Gin{C: c}
-	if err = c.ShouldBindJSON(createPostParam); err != nil {
+	if err = c.ShouldBindJSON(&createPostParam); err != nil {
+		log.Errorf("参数解析错误 param: %v, err: %v", createPostParam, err)
 		app.LogicErrorResponse("参数错误")
 		return
 	}
 
-	mengerId, err := strconv.ParseInt(c.GetHeader("id"), 10, 64)
+	mengerId, err := strconv.ParseInt(c.GetHeader("uid"), 10, 64)
 	if err != nil {
+		log.Error("获取用户id失败 err: ", err)
 		app.ServerErrorResponse()
 		return
 	}
@@ -155,12 +195,14 @@ func (h *PostHandler) CreatePost(c *gin.Context) {
 		protoPostItem := &postProto.PostItem{
 			ObjectId: item.ObjectId,
 			Index:    item.Index,
+			Type:     getPostItemType(item),
 		}
 		protoPostItems = append(protoPostItems, protoPostItem)
 	}
 
+	var postType = getPostType(createPostParam.PostItems)
 	savePostRequest := &postProto.CreatePostRequest{
-		Type:        0,
+		Type:        postType,
 		Title:       createPostParam.Title,
 		Description: createPostParam.Description,
 		MengerId:    mengerId,
@@ -168,7 +210,8 @@ func (h *PostHandler) CreatePost(c *gin.Context) {
 		Items:       protoPostItems,
 	}
 
-	if createPostRes, err = h.postClient.SavePost(c, savePostRequest); err != nil {
+	if createPostRes, err = h.postClient.CreatePost(c, savePostRequest); err != nil {
+		log.Error("调用postSvc失败 err: ", err)
 		app.ServerErrorResponse()
 		return
 	}
@@ -178,4 +221,31 @@ func (h *PostHandler) CreatePost(c *gin.Context) {
 	}
 	app.Response(nil)
 	return
+}
+
+func getPostItemType(item *CreatePostItemParam) int32 {
+	ext := strings.ToLower(path.Ext(item.Filename))
+	if imageTypeSet.Contains(ext) {
+		return PostItemImage
+	}
+	if videoTypeSet.Contains(ext) {
+		return PostItemVideo
+	}
+	return PostItemUnknown
+}
+
+func getPostType(postItems []*CreatePostItemParam) int32 {
+	if len(postItems) > 1 {
+		return PostSidecar
+	} else {
+		postItem := postItems[0]
+		ext := strings.ToLower(path.Ext(postItem.Filename))
+		if imageTypeSet.Contains(ext) {
+			return PostImage
+		}
+		if videoTypeSet.Contains(ext) {
+			return PostVideo
+		}
+	}
+	return PostUnknown
 }

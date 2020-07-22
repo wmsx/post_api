@@ -1,19 +1,19 @@
 package handler
 
 type PostInfo struct {
-	Id          int64
-	Type        int32
-	Title       string
-	Description string
-	MengerInfo  *MengerInfo
-	Item        []*PostItem
+	Id          int64       `json:"id"`
+	Type        int32       `json:"type"`
+	Title       string      `json:"title"`
+	Description string      `json:"description"`
+	MengerInfo  *MengerInfo `json:"menger_info"`
+	Item        []*PostItem `json:"item"`
 }
 
 type MengerInfo struct {
-	MengerId int64  `json:"menger_id,omitempty"`
-	Name     string `json:"name,omitempty"`
-	Email    string `json:"email,omitempty"`
-	Avatar   string `json:"avatar,omitempty"`
+	MengerId int64  `json:"menger_id"`
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Avatar   string `json:"avatar"`
 }
 
 type PostItem struct {
