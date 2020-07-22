@@ -726,8 +726,8 @@ github.com/wmsx/menger_svc v0.0.0-20200721170201-dd47044981ba h1:0ZSy6m4LyuaSyIM
 github.com/wmsx/menger_svc v0.0.0-20200721170201-dd47044981ba/go.mod h1:XBZ9eYgNAU+KEwyclcSySnTxQAuKiaougZS1BKJT/9A=
 github.com/wmsx/pkg v0.0.0-20200721154220-d35217b41458 h1:/RcQmsVWh3EP3pvnXKoqaajzCLn3SXxQpkw7MfzW8RE=
 github.com/wmsx/pkg v0.0.0-20200721154220-d35217b41458/go.mod h1:7lkZ+0GLPxFMOo84rWt3ytf9EpPxrtOJVcE6k7YnLQ8=
-github.com/wmsx/post_svc v0.0.0-20200721181224-b8f39b1e8d34 h1:lu5WRYWJU2MBkbwQ0Nx9zoMr0MjDMgz331LuvyCU1z0=
-github.com/wmsx/post_svc v0.0.0-20200721181224-b8f39b1e8d34/go.mod h1:/pcogVIqWA5yCXNfK8kTIMnsaGNSujRszzDXrdoo96s=
+github.com/wmsx/post_svc v0.0.0-20200722121416-f735c9f55907 h1:MO1tcY+5U3y0HhXOkFITdXU/xE7NJX0KEW4ofZ2wETk=
+github.com/wmsx/post_svc v0.0.0-20200722121416-f735c9f55907/go.mod h1:eUyt+MVskHdf87QZJR62TFJscSLWIGJutj+ar78HGtU=
 github.com/wmsx/store_svc v0.0.0-20200721165626-2634000225dd h1:CtOEzEYlxDeWQU2S6mG1lYGuOW9rup+Bg1P6L/SU9lw=
 github.com/wmsx/store_svc v0.0.0-20200721165626-2634000225dd/go.mod h1:9vMK6lfCdFVSGTJcXCog86Z9qFIMpEczEWwieqHP5dI=
 github.com/wmsx/xconf v0.0.0-20200710193800-f97c7e3c9e84 h1:ZW9gBd4qnUiRwpgxZCOsjrSEv7fRT0jQdM/UboqvINE=
