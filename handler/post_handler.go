@@ -123,10 +123,10 @@ func (h *PostHandler) GetPostList(c *gin.Context) {
 	mengerInfoMap := make(map[int64]*MengerInfo)
 	for _, protoMengerInfo := range getMengerListRes.MengerInfos {
 		mengerInfoMap[protoMengerInfo.Id] = &MengerInfo{
-			MengerId: protoMengerInfo.Id,
-			Name:     protoMengerInfo.Name,
-			Email:    protoMengerInfo.Email,
-			Avatar:   protoMengerInfo.Avatar,
+			Id:     protoMengerInfo.Id,
+			Name:   protoMengerInfo.Name,
+			Email:  protoMengerInfo.Email,
+			Avatar: protoMengerInfo.Avatar,
 		}
 	}
 
@@ -162,7 +162,8 @@ func (h *PostHandler) GetPostList(c *gin.Context) {
 			Title:       protoPostInfo.Title,
 			Description: protoPostInfo.Description,
 			MengerInfo:  mengerInfo,
-			Item:        postItems,
+			Items:       postItems,
+			CreateAt:    protoPostInfo.CreateAt,
 		}
 		postInfos = append(postInfos, postInfo)
 	}
