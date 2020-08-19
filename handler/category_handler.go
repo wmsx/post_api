@@ -59,3 +59,29 @@ func (h *CategoryHandler) CreateCategory(c *gin.Context) {
 	app.Response(nil)
 	return
 }
+
+func (h *CategoryHandler) GetCategoryList(c *gin.Context) {
+	var (
+		err               error
+		getAllCategoryRequest *categoryProto.GetAllCategoryRequest
+		getAllCategoryResp *categoryProto.GetAllCategoryResponse
+	)
+	app := mygin.Gin{C: c}
+
+	getAllCategoryRequest = &categoryProto.GetAllCategoryRequest{}
+
+	getAllCategoryResp, err =  h.categoryClient.GetAllCategory(c, getAllCategoryRequest)
+	if err != nil {
+		log.Error("调用【post_svc】【获取分类列表】失败 err:  ", err)
+		app.ServerErrorResponse()
+		return
+	}
+	if getAllCategoryResp.ErrorMsg != "" {
+		app.LogicErrorResponse(getAllCategoryResp.ErrorMsg)
+		return
+	}
+
+	categoryInfo := getAllCategoryResp.CategoryInfos
+	app.Response(categoryInfo)
+	return
+}

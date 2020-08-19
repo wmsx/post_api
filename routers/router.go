@@ -21,5 +21,6 @@ func InitRouter(c client.Client) *gin.Engine {
 	postRouter.POST("/list", postHandler.GetPostList)
 	postRouter.POST("/create", mygin.AuthWrapper(postHandler.CreatePost))
 	postRouter.POST("/category/create", mygin.AuthWrapper(categoryHandler.CreateCategory))
+	postRouter.POST("/category/list", categoryHandler.GetCategoryList)
 	return r
 }

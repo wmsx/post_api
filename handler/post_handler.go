@@ -71,7 +71,7 @@ func (h *PostHandler) GetPostList(c *gin.Context) {
 	app := mygin.Gin{C: c}
 
 	var postListParam GetPostListParam
-	if err = c.ShouldBindJSON(&postListParam); err != nil {
+	if err = c.ShouldBindQuery(&postListParam); err != nil {
 		log.Error("参数解析错误 err: ", err)
 		app.LogicErrorResponse("参数错误")
 		return
