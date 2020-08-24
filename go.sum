@@ -728,8 +728,8 @@ github.com/wmsx/pkg v0.0.0-20200722160831-4cb77a04c806 h1:s2Bi8XE/BVYoY69DO1BQbY
 github.com/wmsx/pkg v0.0.0-20200722160831-4cb77a04c806/go.mod h1:7lkZ+0GLPxFMOo84rWt3ytf9EpPxrtOJVcE6k7YnLQ8=
 github.com/wmsx/post_svc v0.0.0-20200819135617-f0c7d7db39a1 h1:B+eF9diR1KmnjIqynHEV0Em1I3YM1pwQhY8EuBqQCNI=
 github.com/wmsx/post_svc v0.0.0-20200819135617-f0c7d7db39a1/go.mod h1:eUyt+MVskHdf87QZJR62TFJscSLWIGJutj+ar78HGtU=
-github.com/wmsx/store_svc v0.0.0-20200721165626-2634000225dd h1:CtOEzEYlxDeWQU2S6mG1lYGuOW9rup+Bg1P6L/SU9lw=
-github.com/wmsx/store_svc v0.0.0-20200721165626-2634000225dd/go.mod h1:9vMK6lfCdFVSGTJcXCog86Z9qFIMpEczEWwieqHP5dI=
+github.com/wmsx/store_svc v0.0.0-20200824190817-91824b722ee2 h1:FOUSa+RVe3cPMGMGWVDt1v+O9qdbLbiyixEM6qRkdZ4=
+github.com/wmsx/store_svc v0.0.0-20200824190817-91824b722ee2/go.mod h1:9vMK6lfCdFVSGTJcXCog86Z9qFIMpEczEWwieqHP5dI=
 github.com/wmsx/xconf v0.0.0-20200710193800-f97c7e3c9e84 h1:ZW9gBd4qnUiRwpgxZCOsjrSEv7fRT0jQdM/UboqvINE=
 github.com/wmsx/xconf v0.0.0-20200710193800-f97c7e3c9e84/go.mod h1:k3qzr9U26NlybCSY5hxV2yhbjvh2DxuWW/vBn5zaos8=
 github.com/wmsx/xconf v0.0.0-20200720194624-34a4108a8759/go.mod h1:Eyy9YKMqTa4y2RjO4bAH6YUSI7r6kEEI2I5atX+6hjQ=

@@ -63,10 +63,10 @@ func NewPostHandler(c client.Client) *PostHandler {
 // 获取post列表内容
 func (h *PostHandler) GetPostList(c *gin.Context) {
 	var (
-		err               error
-		getPostListRes    *postProto.GetPostListResponse
-		getByObjectIdsRes *storeProto.GetByObjectIdsResponse
-		getMengerListRes  *mengerProto.GetMengerListResponse
+		err              error
+		getPostListRes   *postProto.GetPostListResponse
+		getByStoreIdsRes *storeProto.GetByStoreIdsResponse
+		getMengerListRes *mengerProto.GetMengerListResponse
 	)
 	app := mygin.Gin{C: c}
 
@@ -87,7 +87,7 @@ func (h *PostHandler) GetPostList(c *gin.Context) {
 		return
 	}
 
-	objectIds := make([]int64, 0)
+	storeIds := make([]int64, 0)
 	mengerIds := make([]int64, 0)
 	mengerTemp := make(map[int64]struct{})
 	for _, postInfo := range getPostListRes.PostInfos {
@@ -97,20 +97,20 @@ func (h *PostHandler) GetPostList(c *gin.Context) {
 		}
 
 		for _, item := range postInfo.Item {
-			objectIds = append(objectIds, item.ObjectId)
+			storeIds = append(storeIds, item.ObjectId)
 		}
 	}
 
-	getByObjectIdsRequest := &storeProto.GetByObjectIdsRequest{ObjectIds: objectIds}
-	if getByObjectIdsRes, err = h.storeClient.GetByObjectIds(c, getByObjectIdsRequest); err != nil {
+	getByStoreIdsRequest := &storeProto.GetByStoreIdsRequest{StoreIds: storeIds}
+	if getByStoreIdsRes, err = h.storeClient.GetByStoreIds(c, getByStoreIdsRequest); err != nil {
 		log.Error("【store svc】【GetByObjectIds】远程调用失败 err: ", err)
 		app.ServerErrorResponse()
 		return
 	}
 
-	objectInfoMap := make(map[int64]*storeProto.ObjectInfo)
-	for _, objectInfo := range getByObjectIdsRes.ObjectInfos {
-		objectInfoMap[objectInfo.Id] = objectInfo
+	storeInfoMap := make(map[int64]*storeProto.StoreInfo)
+	for _, storeInfo := range getByStoreIdsRes.StoreInfo {
+		storeInfoMap[storeInfo.Id] = storeInfo
 	}
 
 	getMengerListRequest := &mengerProto.GetMengerListRequest{MengerIds: mengerIds}
@@ -141,9 +141,9 @@ func (h *PostHandler) GetPostList(c *gin.Context) {
 
 		postItems := make([]*PostItem, 0)
 		for _, protoPostItem := range protoPostItems {
-			objectInfo, _ := objectInfoMap[protoPostItem.ObjectId]
+			storeInfo, _ := storeInfoMap[protoPostItem.ObjectId]
 
-			url, err := PresignedGetObject(c, objectInfo.Bulk, objectInfo.ObjectName, 10*time.Minute)
+			url, err := PresignedGetObject(c, storeInfo.BulkName, storeInfo.ObjectName, 10*time.Minute)
 			if err != nil {
 				log.Error("【minio】获取object访问连接失败 err: ", err)
 				app.ServerErrorResponse()
@@ -151,7 +151,8 @@ func (h *PostHandler) GetPostList(c *gin.Context) {
 			}
 
 			postItem := &PostItem{
-				Url: url,
+				Url:  url,
+				Type: protoPostItem.Type,
 			}
 			postItems = append(postItems, postItem)
 		}
@@ -196,12 +197,17 @@ func (h *PostHandler) CreatePost(c *gin.Context) {
 		protoPostItem := &postProto.PostItem{
 			ObjectId: item.ObjectId,
 			Index:    item.Index,
-			Type:     getPostItemType(item),
+			Type:     getPostItemType(item.Filename),
 		}
 		protoPostItems = append(protoPostItems, protoPostItem)
 	}
 
-	var postType = getPostType(createPostParam.PostItems)
+	filenames := make([]string, 0)
+	for _, item := range createPostParam.PostItems {
+		filenames = append(filenames, item.Filename)
+	}
+
+	var postType = getPostType(filenames)
 	savePostRequest := &postProto.CreatePostRequest{
 		Type:        postType,
 		Title:       createPostParam.Title,
@@ -224,8 +230,8 @@ func (h *PostHandler) CreatePost(c *gin.Context) {
 	return
 }
 
-func getPostItemType(item *CreatePostItemParam) int32 {
-	ext := strings.ToLower(path.Ext(item.Filename))
+func getPostItemType(filename string) int32 {
+	ext := strings.ToLower(path.Ext(filename))
 	if imageTypeSet.Contains(ext) {
 		return PostItemImage
 	}
@@ -235,12 +241,12 @@ func getPostItemType(item *CreatePostItemParam) int32 {
 	return PostItemUnknown
 }
 
-func getPostType(postItems []*CreatePostItemParam) int32 {
-	if len(postItems) > 1 {
+func getPostType(filenames []string) int32 {
+	if len(filenames) > 1 {
 		return PostSidecar
 	} else {
-		postItem := postItems[0]
-		ext := strings.ToLower(path.Ext(postItem.Filename))
+		filename := filenames[0]
+		ext := strings.ToLower(path.Ext(filename))
 		if imageTypeSet.Contains(ext) {
 			return PostImage
 		}
