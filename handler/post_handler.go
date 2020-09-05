@@ -97,7 +97,7 @@ func (h *PostHandler) GetPostList(c *gin.Context) {
 		}
 
 		for _, item := range postInfo.Item {
-			storeIds = append(storeIds, item.ObjectId)
+			storeIds = append(storeIds, item.StoreId)
 		}
 	}
 
@@ -109,7 +109,7 @@ func (h *PostHandler) GetPostList(c *gin.Context) {
 	}
 
 	storeInfoMap := make(map[int64]*storeProto.StoreInfo)
-	for _, storeInfo := range getByStoreIdsRes.StoreInfo {
+	for _, storeInfo := range getByStoreIdsRes.StoreInfos {
 		storeInfoMap[storeInfo.Id] = storeInfo
 	}
 
@@ -125,7 +125,6 @@ func (h *PostHandler) GetPostList(c *gin.Context) {
 		mengerInfoMap[protoMengerInfo.Id] = &MengerInfo{
 			Id:     protoMengerInfo.Id,
 			Name:   protoMengerInfo.Name,
-			Email:  protoMengerInfo.Email,
 			Avatar: protoMengerInfo.Avatar,
 		}
 	}
@@ -141,7 +140,7 @@ func (h *PostHandler) GetPostList(c *gin.Context) {
 
 		postItems := make([]*PostItem, 0)
 		for _, protoPostItem := range protoPostItems {
-			storeInfo, _ := storeInfoMap[protoPostItem.ObjectId]
+			storeInfo, _ := storeInfoMap[protoPostItem.StoreId]
 
 			url, err := PresignedGetObject(c, storeInfo.BulkName, storeInfo.ObjectName, 10*time.Minute)
 			if err != nil {
@@ -195,9 +194,9 @@ func (h *PostHandler) CreatePost(c *gin.Context) {
 	protoPostItems := make([]*postProto.PostItem, 0)
 	for _, item := range createPostParam.PostItems {
 		protoPostItem := &postProto.PostItem{
-			ObjectId: item.ObjectId,
-			Index:    item.Index,
-			Type:     getPostItemType(item.Filename),
+			StoreId: item.ObjectId,
+			Index:   item.Index,
+			Type:    getPostItemType(item.Filename),
 		}
 		protoPostItems = append(protoPostItems, protoPostItem)
 	}
@@ -227,6 +226,331 @@ func (h *PostHandler) CreatePost(c *gin.Context) {
 		return
 	}
 	app.Response(nil)
+	return
+}
+
+func (h *PostHandler) GetMengerPostlist(c *gin.Context) {
+	var (
+		err                  error
+		getMengerPostListRes *postProto.GetMengerPostListResponse
+		getByStoreIdsRes     *storeProto.GetByStoreIdsResponse
+		getMengerRes         *mengerProto.GetMengerResponse
+	)
+
+	app := mygin.Gin{C: c}
+
+	getMengerPostListRequest := &postProto.GetMengerPostListRequest{
+		MengerId: 0,
+		PageNum:  0,
+		PageSize: 0,
+	}
+
+	getMengerPostListRes, err = h.postClient.GetMengerPostList(c, getMengerPostListRequest)
+	if err != nil {
+		log.Error("【post_svc】【GetMengerPostList】 远程调用失败 err: ", err)
+		app.ServerErrorResponse()
+		return
+	}
+
+	storeIds := make([]int64, 0)
+	for _, postInfo := range getMengerPostListRes.PostInfos {
+		for _, item := range postInfo.Item {
+			storeIds = append(storeIds, item.StoreId)
+		}
+	}
+
+	getByStoreIdsRequest := &storeProto.GetByStoreIdsRequest{StoreIds: storeIds}
+	if getByStoreIdsRes, err = h.storeClient.GetByStoreIds(c, getByStoreIdsRequest); err != nil {
+		log.Error("【store svc】【GetByObjectIds】远程调用失败 err: ", err)
+		app.ServerErrorResponse()
+		return
+	}
+
+	storeInfoMap := make(map[int64]*storeProto.StoreInfo)
+	for _, storeInfo := range getByStoreIdsRes.StoreInfos {
+		storeInfoMap[storeInfo.Id] = storeInfo
+	}
+
+	getMengerRequest := &mengerProto.GetMengerRequest{
+		MengerId: 0,
+	}
+	getMengerRes, err = h.mengerClient.GetMenger(c, getMengerRequest)
+	if err != nil {
+		log.Error("【menger svc】【GetMenger】远程调用失败 err: ", err)
+		app.ServerErrorResponse()
+		return
+	}
+
+	protoMengerInfo := getMengerRes.MengerInfo
+	mengerInfo := &MengerInfo{
+		Id:     protoMengerInfo.Id,
+		Name:   protoMengerInfo.Name,
+		Avatar: protoMengerInfo.Avatar,
+	}
+
+	postInfos := make([]*PostInfo, 0)
+	for _, protoPostInfo := range getMengerPostListRes.PostInfos {
+		protoPostItems := protoPostInfo.Item
+
+		sort.SliceStable(protoPostItems, func(i, j int) bool {
+			return protoPostItems[i].Index < protoPostItems[j].Index
+		})
+
+		postItems := make([]*PostItem, 0)
+		for _, protoPostItem := range protoPostItems {
+			storeInfo, _ := storeInfoMap[protoPostItem.StoreId]
+
+			url, err := PresignedGetObject(c, storeInfo.BulkName, storeInfo.ObjectName, 10*time.Minute)
+			if err != nil {
+				log.Error("【minio】获取object访问连接失败 err: ", err)
+				app.ServerErrorResponse()
+				return
+			}
+
+			postItem := &PostItem{
+				Url:  url,
+				Type: protoPostItem.Type,
+			}
+			postItems = append(postItems, postItem)
+		}
+
+		postInfo := &PostInfo{
+			Id:          protoPostInfo.Id,
+			Type:        protoPostInfo.Type,
+			Title:       protoPostInfo.Title,
+			Description: protoPostInfo.Description,
+			MengerInfo:  mengerInfo,
+			Items:       postItems,
+			CreateAt:    protoPostInfo.CreateAt,
+		}
+		postInfos = append(postInfos, postInfo)
+	}
+	app.Response(postInfos)
+	return
+
+}
+
+func (h *PostHandler) GetMengerFavoritePostlist(c *gin.Context) {
+	var (
+		err                    error
+		getByStoreIdsRes       *storeProto.GetByStoreIdsResponse
+		getMengerRes           *mengerProto.GetMengerResponse
+		getFavoritePostListRes *mengerProto.GetFavoritePostListResponse
+		getPostByIdsRes        *postProto.GetPostByIdsResponse
+	)
+
+	app := mygin.Gin{C: c}
+
+	getFavoritePostListRequest := &mengerProto.GetFavoritePostListRequest{
+		PageNum:  0,
+		PageSize: 0,
+		MengerId: 0,
+	}
+
+	getFavoritePostListRes, err = h.mengerClient.GetFavoritePostList(c, getFavoritePostListRequest)
+	if err != nil {
+		log.Error("【menger_svc】【GetFavoritePostList】 远程调用失败 err: ", err)
+		app.ServerErrorResponse()
+		return
+	}
+
+	getPostByIdsRequest := &postProto.GetPostByIdsRequest{
+		Ids: getFavoritePostListRes.PostIds,
+	}
+
+	getPostByIdsRes, err = h.postClient.GetPostByIds(c, getPostByIdsRequest)
+	if err != nil {
+		log.Error("【post_svc】【GetPostByIds】 远程调用失败 err: ", err)
+		app.ServerErrorResponse()
+		return
+	}
+
+	storeIds := make([]int64, 0)
+	for _, postInfo := range getPostByIdsRes.PostInfos {
+		for _, item := range postInfo.Item {
+			storeIds = append(storeIds, item.StoreId)
+		}
+	}
+
+	getByStoreIdsRequest := &storeProto.GetByStoreIdsRequest{StoreIds: storeIds}
+	if getByStoreIdsRes, err = h.storeClient.GetByStoreIds(c, getByStoreIdsRequest); err != nil {
+		log.Error("【store svc】【GetByObjectIds】远程调用失败 err: ", err)
+		app.ServerErrorResponse()
+		return
+	}
+
+	storeInfoMap := make(map[int64]*storeProto.StoreInfo)
+	for _, storeInfo := range getByStoreIdsRes.StoreInfos {
+		storeInfoMap[storeInfo.Id] = storeInfo
+	}
+
+	getMengerRequest := &mengerProto.GetMengerRequest{
+		MengerId: 0,
+	}
+	getMengerRes, err = h.mengerClient.GetMenger(c, getMengerRequest)
+	if err != nil {
+		log.Error("【menger svc】【GetMenger】远程调用失败 err: ", err)
+		app.ServerErrorResponse()
+		return
+	}
+
+	protoMengerInfo := getMengerRes.MengerInfo
+	mengerInfo := &MengerInfo{
+		Id:     protoMengerInfo.Id,
+		Name:   protoMengerInfo.Name,
+		Avatar: protoMengerInfo.Avatar,
+	}
+
+	postInfos := make([]*PostInfo, 0)
+	for _, protoPostInfo := range getPostByIdsRes.PostInfos {
+		protoPostItems := protoPostInfo.Item
+
+		sort.SliceStable(protoPostItems, func(i, j int) bool {
+			return protoPostItems[i].Index < protoPostItems[j].Index
+		})
+
+		postItems := make([]*PostItem, 0)
+		for _, protoPostItem := range protoPostItems {
+			storeInfo, _ := storeInfoMap[protoPostItem.StoreId]
+
+			url, err := PresignedGetObject(c, storeInfo.BulkName, storeInfo.ObjectName, 10*time.Minute)
+			if err != nil {
+				log.Error("【minio】获取object访问连接失败 err: ", err)
+				app.ServerErrorResponse()
+				return
+			}
+
+			postItem := &PostItem{
+				Url:  url,
+				Type: protoPostItem.Type,
+			}
+			postItems = append(postItems, postItem)
+		}
+
+		postInfo := &PostInfo{
+			Id:          protoPostInfo.Id,
+			Type:        protoPostInfo.Type,
+			Title:       protoPostInfo.Title,
+			Description: protoPostInfo.Description,
+			MengerInfo:  mengerInfo,
+			Items:       postItems,
+			CreateAt:    protoPostInfo.CreateAt,
+		}
+		postInfos = append(postInfos, postInfo)
+	}
+	app.Response(postInfos)
+	return
+}
+
+func (h *PostHandler) GetMengerThumbUpPostlist(c *gin.Context) {
+	var (
+		err                   error
+		getThumbUpPostListRes *mengerProto.GetThumbUpPostListResponse
+		getByStoreIdsRes      *storeProto.GetByStoreIdsResponse
+		getMengerRes          *mengerProto.GetMengerResponse
+		getPostByIdsRes       *postProto.GetPostByIdsResponse
+	)
+
+	app := mygin.Gin{C: c}
+
+	getThumbUpPostListRequest := &mengerProto.GetThumbUpPostListRequest{
+		MengerId: 0,
+		PageNum:  0,
+		PageSize: 0,
+	}
+
+	getThumbUpPostListRes, err = h.mengerClient.GetThumbUpPostList(c, getThumbUpPostListRequest)
+	if err != nil {
+		log.Error("【menger_svc】【GetThumbUpPostList】 远程调用失败 err: ", err)
+		app.ServerErrorResponse()
+		return
+	}
+
+	getPostByIdsRequest := &postProto.GetPostByIdsRequest{
+		Ids: getThumbUpPostListRes.PostIds,
+	}
+
+	getPostByIdsRes, err = h.postClient.GetPostByIds(c, getPostByIdsRequest)
+	if err != nil {
+		log.Error("【post_svc】【GetPostByIds】 远程调用失败 err: ", err)
+		app.ServerErrorResponse()
+		return
+	}
+
+	storeIds := make([]int64, 0)
+	for _, postInfo := range getPostByIdsRes.PostInfos {
+		for _, item := range postInfo.Item {
+			storeIds = append(storeIds, item.StoreId)
+		}
+	}
+
+	getByStoreIdsRequest := &storeProto.GetByStoreIdsRequest{StoreIds: storeIds}
+	if getByStoreIdsRes, err = h.storeClient.GetByStoreIds(c, getByStoreIdsRequest); err != nil {
+		log.Error("【store svc】【GetByObjectIds】远程调用失败 err: ", err)
+		app.ServerErrorResponse()
+		return
+	}
+
+	storeInfoMap := make(map[int64]*storeProto.StoreInfo)
+	for _, storeInfo := range getByStoreIdsRes.StoreInfos {
+		storeInfoMap[storeInfo.Id] = storeInfo
+	}
+
+	getMengerRequest := &mengerProto.GetMengerRequest{
+		MengerId: 0,
+	}
+	getMengerRes, err = h.mengerClient.GetMenger(c, getMengerRequest)
+	if err != nil {
+		log.Error("【menger svc】【GetMenger】远程调用失败 err: ", err)
+		app.ServerErrorResponse()
+		return
+	}
+
+	protoMengerInfo := getMengerRes.MengerInfo
+	mengerInfo := &MengerInfo{
+		Id:     protoMengerInfo.Id,
+		Name:   protoMengerInfo.Name,
+		Avatar: protoMengerInfo.Avatar,
+	}
+
+	postInfos := make([]*PostInfo, 0)
+	for _, protoPostInfo := range getPostByIdsRes.PostInfos {
+		protoPostItems := protoPostInfo.Item
+
+		sort.SliceStable(protoPostItems, func(i, j int) bool {
+			return protoPostItems[i].Index < protoPostItems[j].Index
+		})
+
+		postItems := make([]*PostItem, 0)
+		for _, protoPostItem := range protoPostItems {
+			storeInfo, _ := storeInfoMap[protoPostItem.StoreId]
+
+			url, err := PresignedGetObject(c, storeInfo.BulkName, storeInfo.ObjectName, 10*time.Minute)
+			if err != nil {
+				log.Error("【minio】获取object访问连接失败 err: ", err)
+				app.ServerErrorResponse()
+				return
+			}
+
+			postItem := &PostItem{
+				Url:  url,
+				Type: protoPostItem.Type,
+			}
+			postItems = append(postItems, postItem)
+		}
+
+		postInfo := &PostInfo{
+			Id:          protoPostInfo.Id,
+			Type:        protoPostInfo.Type,
+			Title:       protoPostInfo.Title,
+			Description: protoPostInfo.Description,
+			MengerInfo:  mengerInfo,
+			Items:       postItems,
+			CreateAt:    protoPostInfo.CreateAt,
+		}
+		postInfos = append(postInfos, postInfo)
+	}
+	app.Response(postInfos)
 	return
 }
 

@@ -17,10 +17,17 @@ func InitRouter(c client.Client) *gin.Engine {
 	postHandler := handler.NewPostHandler(c)
 	categoryHandler := handler.NewCategoryHandler(c)
 	postRouter := r.Group("/post")
-
 	postRouter.POST("/list", postHandler.GetPostList)
 	postRouter.POST("/create", mygin.AuthWrapper(postHandler.CreatePost))
-	postRouter.POST("/category/create", mygin.AuthWrapper(categoryHandler.CreateCategory))
-	postRouter.POST("/category/list", categoryHandler.GetCategoryList)
+
+	postCategoryRouter := r.Group("/post/category")
+	postCategoryRouter.POST("/create", mygin.AuthWrapper(categoryHandler.CreateCategory))
+	postCategoryRouter.POST("/list", categoryHandler.GetCategoryList)
+
+	postMengerRouter := r.Group("/post/menger")
+	postMengerRouter.POST("/list", mygin.AuthWrapper(postHandler.GetMengerPostlist))
+	postMengerRouter.POST("/favorite/list", mygin.AuthWrapper(postHandler.GetMengerFavoritePostlist))
+	postMengerRouter.POST("/thumbup/list", mygin.AuthWrapper(postHandler.GetMengerThumbUpPostlist))
+
 	return r
 }
