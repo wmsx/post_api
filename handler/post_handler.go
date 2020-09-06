@@ -231,6 +231,7 @@ func (h *PostHandler) CreatePost(c *gin.Context) {
 
 func (h *PostHandler) GetMengerPostlist(c *gin.Context) {
 	var (
+		mengerId             int64
 		err                  error
 		getMengerPostListRes *postProto.GetMengerPostListResponse
 		getByStoreIdsRes     *storeProto.GetByStoreIdsResponse
@@ -239,10 +240,24 @@ func (h *PostHandler) GetMengerPostlist(c *gin.Context) {
 
 	app := mygin.Gin{C: c}
 
+	mengerId, err = strconv.ParseInt(c.GetHeader("uid"), 10, 64)
+	if err != nil {
+		log.Error("获取用户id失败 err: ", err)
+		app.ServerErrorResponse()
+		return
+	}
+
+	var pageQueryParam PageQueryParam
+	if err = c.ShouldBindJSON(&pageQueryParam); err != nil {
+		log.Error("分页参数错误 err: ", err)
+		app.ServerErrorResponse()
+		return
+	}
+
 	getMengerPostListRequest := &postProto.GetMengerPostListRequest{
-		MengerId: 0,
-		PageNum:  0,
-		PageSize: 0,
+		MengerId: mengerId,
+		PageNum:  pageQueryParam.PageNum,
+		PageSize: pageQueryParam.PageSize,
 	}
 
 	getMengerPostListRes, err = h.postClient.GetMengerPostList(c, getMengerPostListRequest)
@@ -261,7 +276,7 @@ func (h *PostHandler) GetMengerPostlist(c *gin.Context) {
 
 	getByStoreIdsRequest := &storeProto.GetByStoreIdsRequest{StoreIds: storeIds}
 	if getByStoreIdsRes, err = h.storeClient.GetByStoreIds(c, getByStoreIdsRequest); err != nil {
-		log.Error("【store svc】【GetByObjectIds】远程调用失败 err: ", err)
+		log.Error("【store_svc】【GetByObjectIds】远程调用失败 err: ", err)
 		app.ServerErrorResponse()
 		return
 	}
@@ -272,11 +287,11 @@ func (h *PostHandler) GetMengerPostlist(c *gin.Context) {
 	}
 
 	getMengerRequest := &mengerProto.GetMengerRequest{
-		MengerId: 0,
+		MengerId: mengerId,
 	}
 	getMengerRes, err = h.mengerClient.GetMenger(c, getMengerRequest)
 	if err != nil {
-		log.Error("【menger svc】【GetMenger】远程调用失败 err: ", err)
+		log.Error("【menger_svc】【GetMenger】远程调用失败 err: ", err)
 		app.ServerErrorResponse()
 		return
 	}
@@ -332,6 +347,7 @@ func (h *PostHandler) GetMengerPostlist(c *gin.Context) {
 
 func (h *PostHandler) GetMengerFavoritePostlist(c *gin.Context) {
 	var (
+		mengerId               int64
 		err                    error
 		getByStoreIdsRes       *storeProto.GetByStoreIdsResponse
 		getMengerRes           *mengerProto.GetMengerResponse
@@ -341,10 +357,24 @@ func (h *PostHandler) GetMengerFavoritePostlist(c *gin.Context) {
 
 	app := mygin.Gin{C: c}
 
+	mengerId, err = strconv.ParseInt(c.GetHeader("uid"), 10, 64)
+	if err != nil {
+		log.Error("获取用户id失败 err: ", err)
+		app.ServerErrorResponse()
+		return
+	}
+
+	var pageQueryParam PageQueryParam
+	if err = c.ShouldBindJSON(&pageQueryParam); err != nil {
+		log.Error("分页参数错误 err: ", err)
+		app.ServerErrorResponse()
+		return
+	}
+
 	getFavoritePostListRequest := &mengerProto.GetFavoritePostListRequest{
-		PageNum:  0,
-		PageSize: 0,
-		MengerId: 0,
+		PageNum:  pageQueryParam.PageNum,
+		PageSize: pageQueryParam.PageSize,
+		MengerId: mengerId,
 	}
 
 	getFavoritePostListRes, err = h.mengerClient.GetFavoritePostList(c, getFavoritePostListRequest)
@@ -385,7 +415,7 @@ func (h *PostHandler) GetMengerFavoritePostlist(c *gin.Context) {
 	}
 
 	getMengerRequest := &mengerProto.GetMengerRequest{
-		MengerId: 0,
+		MengerId: mengerId,
 	}
 	getMengerRes, err = h.mengerClient.GetMenger(c, getMengerRequest)
 	if err != nil {
@@ -444,6 +474,7 @@ func (h *PostHandler) GetMengerFavoritePostlist(c *gin.Context) {
 
 func (h *PostHandler) GetMengerThumbUpPostlist(c *gin.Context) {
 	var (
+		mengerId              int64
 		err                   error
 		getThumbUpPostListRes *mengerProto.GetThumbUpPostListResponse
 		getByStoreIdsRes      *storeProto.GetByStoreIdsResponse
@@ -453,10 +484,24 @@ func (h *PostHandler) GetMengerThumbUpPostlist(c *gin.Context) {
 
 	app := mygin.Gin{C: c}
 
+	mengerId, err = strconv.ParseInt(c.GetHeader("uid"), 10, 64)
+	if err != nil {
+		log.Error("获取用户id失败 err: ", err)
+		app.ServerErrorResponse()
+		return
+	}
+
+	var pageQueryParam PageQueryParam
+	if err = c.ShouldBindJSON(&pageQueryParam); err != nil {
+		log.Error("分页参数错误 err: ", err)
+		app.ServerErrorResponse()
+		return
+	}
+
 	getThumbUpPostListRequest := &mengerProto.GetThumbUpPostListRequest{
-		MengerId: 0,
-		PageNum:  0,
-		PageSize: 0,
+		MengerId: mengerId,
+		PageNum:  pageQueryParam.PageNum,
+		PageSize: pageQueryParam.PageSize,
 	}
 
 	getThumbUpPostListRes, err = h.mengerClient.GetThumbUpPostList(c, getThumbUpPostListRequest)
@@ -497,7 +542,7 @@ func (h *PostHandler) GetMengerThumbUpPostlist(c *gin.Context) {
 	}
 
 	getMengerRequest := &mengerProto.GetMengerRequest{
-		MengerId: 0,
+		MengerId: mengerId,
 	}
 	getMengerRes, err = h.mengerClient.GetMenger(c, getMengerRequest)
 	if err != nil {

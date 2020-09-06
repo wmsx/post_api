@@ -1,5 +1,10 @@
 package handler
 
+type PageQueryParam struct {
+	PageNum  int32 `json:"pn"`
+	PageSize int32 `json:"ps"`
+}
+
 type CategoryParam struct {
 	Name     string `json:"name" binding:"required"`
 	ShowName string `json:"show_name" binding:"required"`
